@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>signTypedData_v4 Example</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      input[type="text"] {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+      }
+      button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      #result,
+      #domainSeparator,
+      #typedHash,
+      #structHash {
+        margin-top: 20px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>signTypedData_v4 Example</h1>
+    <div id="accountInfo"></div>
+
+    <button id="connectButton">Connect Wallet</button>
+
+    <h3>Domain Information</h3>
+    <input id="domainName" type="text" placeholder="Domain Name" />
+    <input id="domainVersion" type="text" placeholder="Version" />
+    <input
+      id="verifyingContract"
+      type="text"
+      placeholder="Verifying Contract Address"
+    />
+
+    <h3>Person Information</h3>
+    <input id="personName" type="text" placeholder="Person Name" />
+    <input id="personWallet" type="text" placeholder="Person Wallet Address" />
+
+    <div>
+      <button id="signButton" style="display: none">Sign Typed Data</button>
+    </div>
+
+    <h3>Results</h3>
+    <div id="domainSeparator"></div>
+    <div id="typedHash"></div>
+    <div id="structHash"></div>
+    <div id="result"></div>
+
+    <script>
+      let provider, signer;
+
+      async function connectWallet() {
+        if (typeof window.ethereum !== "undefined") {
+          try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            const address = await signer.getAddress();
+            document.getElementById(
+              "accountInfo"
+            ).textContent = `Connected: ${address}`;
+            document.getElementById("signButton").style.display =
+              "inline-block";
+          } catch (error) {
+            console.error("Connection error:", error);
+            alert("Failed to connect to MetaMask.");
+          }
+        } else {
+          alert("Please install MetaMask!");
+        }
+      }
+
+      async function signTypedData() {
+        if (!signer) return alert("Please connect your wallet first.");
+
+        // 입력 값 가져오기
+        const domainName =
+          document.getElementById("domainName").value || "My App";
+        const domainVersion =
+          document.getElementById("domainVersion").value || "1";
+        const verifyingContract =
+          document.getElementById("verifyingContract").value ||
+          "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC";
+        const personName =
+          document.getElementById("personName").value || "Alice";
+        const personWallet =
+          document.getElementById("personWallet").value ||
+          "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB";
+
+        // 현재 네트워크의 chainId 가져오기
+        const network = await provider.getNetwork();
+        const chainId = network.chainId;
+
+        const domain = {
+          name: domainName,
+          version: domainVersion,
+          chainId: chainId, // 동적으로 가져온 chainId 사용
+          verifyingContract: verifyingContract,
+        };
+
+        const types = {
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" },
+          ],
+        };
+
+        const value = {
+          name: personName,
+          wallet: personWallet,
+        };
+
+        const domainSeparator =
+          ethers.utils._TypedDataEncoder.hashDomain(domain);
+        const structHash = ethers.utils._TypedDataEncoder.hashStruct(
+          "Person",
+          types,
+          value
+        );
+        const typedHash = ethers.utils._TypedDataEncoder.hash(
+          domain,
+          types,
+          value
+        );
+
+        document.getElementById(
+          "domainSeparator"
+        ).textContent = `DOMAIN_SEPARATOR: ${domainSeparator}`;
+        document.getElementById(
+          "typedHash"
+        ).textContent = `Typed Hash: ${typedHash}`;
+        document.getElementById(
+          "structHash"
+        ).textContent = `Struct Hash: ${structHash}`;
+
+        const msgParams = JSON.stringify({
+          domain,
+          message: value,
+          primaryType: "Person",
+          types: {
+            EIP712Domain: [
+              { name: "name", type: "string" },
+              { name: "version", type: "string" },
+              { name: "chainId", type: "uint256" },
+              { name: "verifyingContract", type: "address" },
+            ],
+            Person: types.Person,
+          },
+        });
+
+        const from = await signer.getAddress();
+
+        try {
+          const signature = await provider.send("eth_signTypedData_v4", [
+            from,
+            msgParams,
+          ]);
+          document.getElementById(
+            "result"
+          ).textContent = `Signature: ${signature}`;
+        } catch (error) {
+          console.error("Error signing typed data:", error);
+          alert("Error signing typed data.");
+        }
+      }
+
+      document
+        .getElementById("connectButton")
+        .addEventListener("click", connectWallet);
+
+      document
+        .getElementById("signButton")
+        .addEventListener("click", signTypedData);
+    </script>
+  </body>
+</html>

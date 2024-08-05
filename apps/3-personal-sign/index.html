@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personal Sign Example</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      button {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+      }
+      #result,
+      #hash {
+        margin-top: 20px;
+        word-break: break-all;
+      }
+      input[type="text"] {
+        width: 80%;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Personal Sign Example</h1>
+    <button id="connectButton">Connect Wallet</button>
+    <div id="accountInfo"></div>
+    <input
+      id="messageInput"
+      type="text"
+      placeholder="Enter a message to sign"
+    />
+    <button id="signButton" style="display: none">Sign Message</button>
+    <div id="hash"></div>
+    <div id="result"></div>
+
+    <script>
+      let provider, signer;
+
+      async function connectWallet() {
+        if (typeof window.ethereum !== "undefined") {
+          try {
+            await window.ethereum.request({ method: "eth_requestAccounts" });
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            const address = await signer.getAddress();
+            document.getElementById(
+              "accountInfo"
+            ).textContent = `Connected: ${address}`;
+            document.getElementById("signButton").style.display =
+              "inline-block";
+          } catch (error) {
+            console.error("Connection error:", error);
+            alert("Failed to connect to MetaMask.");
+          }
+        } else {
+          alert("Please install MetaMask!");
+        }
+      }
+
+      async function signMessage() {
+        if (!signer) return alert("Please connect your wallet first.");
+
+        const message = document.getElementById("messageInput").value;
+
+        if (!message) return alert("Please enter a message to sign.");
+
+        // 메시지를 해시화
+        const messageHash = ethers.utils.keccak256(
+          ethers.utils.toUtf8Bytes(message)
+        );
+
+        document.getElementById(
+          "hash"
+        ).textContent = `Message Hash: ${messageHash}`;
+
+        const address = await signer.getAddress();
+        try {
+          console.log(messageHash);
+
+          // personal_sign 메소드를 사용하여 서명을 요청합니다.
+          const signature = await provider.send("personal_sign", [
+            messageHash,
+            address,
+          ]);
+
+          document.getElementById(
+            "result"
+          ).textContent = `Signature: ${signature}`;
+        } catch (error) {
+          console.error("Error signing message:", error);
+          alert("Error signing message.");
+        }
+      }
+
+      document
+        .getElementById("connectButton")
+        .addEventListener("click", connectWallet);
+
+      document
+        .getElementById("signButton")
+        .addEventListener("click", signMessage);
+    </script>
+  </body>
+</html>

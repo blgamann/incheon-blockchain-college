@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple BasicToken Interaction</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+  </head>
+  <body>
+    <h1>BasicToken Interaction</h1>
+    <button id="connectButton">Connect Wallet</button>
+    <div id="accountInfo"></div>
+    <input id="contractAddress" placeholder="Contract Address" />
+    <button id="setContractButton">Set Contract</button>
+    <br />
+    <input id="addressInput" placeholder="Address" />
+    <button id="getBalanceButton">Get Balance</button>
+    <br />
+    <input id="recipientInput" placeholder="Recipient Address" />
+    <input id="amountInput" type="number" placeholder="Amount" />
+    <button id="transferButton">Transfer</button>
+    <div id="result"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
