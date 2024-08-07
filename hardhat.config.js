@@ -4,7 +4,8 @@ module.exports = {
   solidity: "0.8.17",
   networks: {
     sepolia: {
-      url: process.env.ALCHEMY_API_URL,
+      url:
+        "https://eth-sepolia.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY,
     },
   },
 };

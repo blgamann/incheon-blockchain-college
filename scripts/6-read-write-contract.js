@@ -2,7 +2,7 @@ require("dotenv").config();
 const ethers = require("ethers");
 
 const provider = new ethers.providers.JsonRpcProvider(
-  process.env.ALCHEMY_API_URL
+  "https://eth-sepolia.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY
 );
 
 // Do not share your private key 🤫
