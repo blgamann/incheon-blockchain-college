@@ -1,7 +1,7 @@
 require("dotenv").config();
 const ethers = require("ethers");
-const provider = new ethers.providers.WebSocketProvider(
-  "wss://eth-mainnet.g.alchemy.com/v2/tKBNAymxCYNRJNb6NWepmEl3-GW6Fxfy"
+const provider = new ethers.providers.JsonRpcProvider(
+  "wss://eth-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY
 );
 
 const USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // USDC Contract
